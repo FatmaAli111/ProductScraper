@@ -1,7 +1,6 @@
-"""Excel export of scraped products via openpyxl."""
+"""Excel export of scraped products via openpyxl (no embedded images)."""
 from __future__ import annotations
 
-import json
 import logging
 from collections.abc import Sequence
 from pathlib import Path
@@ -17,14 +16,14 @@ from app.infrastructure.config.settings import OutputSettings
 
 
 class ExcelExporter(ExporterPort):
-    """Writes products.xlsx; images are stored as paths, never embedded."""
+    """Writes products.xlsx; images are referenced by local path, never embedded."""
 
     HEADERS = [
-        "Name",
+        "Product Name",
         "SKU",
-        "Description",
         "Price",
         "Sale Price",
+        "Description",
         "Category",
         "Brand",
         "Tags",
@@ -34,8 +33,9 @@ class ExcelExporter(ExporterPort):
         "Weight",
         "Dimensions",
         "Product URL",
-        "Images",
-        "Variants",
+        "Main Image Folder",
+        "Main Image File",
+        "Gallery Images",
     ]
 
     def __init__(self, settings: OutputSettings, logger: logging.Logger) -> None:
@@ -62,9 +62,9 @@ class ExcelExporter(ExporterPort):
         return [
             product.name,
             product.sku,
-            product.description,
             product.price,
             product.sale_price,
+            product.description,
             product.category,
             product.brand,
             ", ".join(product.tags),
@@ -74,8 +74,9 @@ class ExcelExporter(ExporterPort):
             product.weight,
             product.dimensions,
             product.url,
-            "\n".join(product.images),
-            json.dumps([variant.as_dict() for variant in product.variants], ensure_ascii=False),
+            product.local_folder,
+            product.main_image,
+            ";".join(product.gallery_images),
         ]
 
     @staticmethod

@@ -3,7 +3,28 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from app.infrastructure.utils.parsing import clean_text, parse_price
+from app.infrastructure.utils.parsing import clean_text, parse_price, to_ascii_digits
+
+
+def test_to_ascii_digits_arabic_indic() -> None:
+    assert to_ascii_digits("١٬٩٤٠") == "1940"
+
+
+def test_to_ascii_digits_extended_arabic_indic() -> None:
+    assert to_ascii_digits("۰۱۲۳۴۵۶۷۸۹") == "0123456789"
+
+
+def test_to_ascii_digits_passthrough_ascii() -> None:
+    assert to_ascii_digits("1940") == "1940"
+
+
+def test_to_ascii_digits_empty() -> None:
+    assert to_ascii_digits("") == ""
+
+
+def test_parse_price_with_arabic_indic_digits() -> None:
+    assert parse_price(to_ascii_digits("١٬٩٤٠")) == Decimal("1940")
+
 
 
 def test_clean_text_collapses_whitespace() -> None:

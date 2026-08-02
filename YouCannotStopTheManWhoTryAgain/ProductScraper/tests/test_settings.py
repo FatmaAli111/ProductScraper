@@ -16,6 +16,10 @@ def test_settings_loads_from_yaml(tmp_path: Path) -> None:
                 "  name: template",
                 "  category_urls:",
                 "    - https://x.test/cat",
+                "  max_products: 25",
+                "  browser:",
+                "    channel: chrome",
+                "    headless: false",
                 "  selectors:",
                 "    name: h1.title",
                 "http:",
@@ -31,6 +35,9 @@ def test_settings_loads_from_yaml(tmp_path: Path) -> None:
     assert settings.scraper.name == "template"
     assert settings.scraper.category_urls == ["https://x.test/cat"]
     assert settings.scraper.selectors["name"] == "h1.title"
+    assert settings.scraper.max_products == 25
+    assert settings.scraper.browser.channel == "chrome"
+    assert settings.scraper.browser.headless is False
     assert settings.http.retries == 5
     assert settings.download.threads == 8
 

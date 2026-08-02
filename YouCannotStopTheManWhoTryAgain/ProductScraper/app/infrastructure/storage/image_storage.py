@@ -30,31 +30,30 @@ _CONTENT_TYPE_SUFFIX = {
 
 
 class ImageStorage:
-    """Owns where image files live on disk."""
+    """Owns where image files live on disk.
+
+    Layout: ``output/images/<Product Name>_<SKU>/main.jpg`` plus
+    ``gallery_01.jpg``, ``gallery_02.jpg``, ... for the remaining images.
+    """
 
     _INVALID_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
-    _MAX_NAME_LENGTH = 80
+    _MAX_NAME_LENGTH = 120
 
     def __init__(self, settings: OutputSettings) -> None:
         self._settings = settings
 
-    def product_directory(self, product_name: str) -> Path:
-        """Return ``output/images/<Product Name>/``."""
-        return self._settings.images_dir / self.sanitize(product_name)
+    def product_directory(self, product_name: str, sku: str, product_id: str) -> Path:
+        """Return ``output/images/<Product Name>_<SKU>/`` (SKU or product id)."""
+        identifier = sku or product_id or "product"
+        folder = f"{product_name}_{identifier}"
+        return self._settings.images_dir / self.sanitize(folder)
 
-    def resolve_path(
-        self,
-        directory: Path,
-        index: int,
-        url: str,
-        content_type: str | None,
-    ) -> Path:
-        """Build a deterministic, de-duplicated filename for one image."""
+    def image_filename(self, index: int, url: str, content_type: str | None) -> str:
+        """Return ``main.jpg`` for the first image and ``gallery_XX.jpg`` after."""
         extension = self._extension_for(url, content_type)
-        base = self.sanitize(Path(url.split("?", 1)[0]).name or "image")
-        if not base.lower().endswith(extension):
-            base = f"{base}{extension}"
-        return directory / f"{index:02d}_{base}"
+        if index <= 1:
+            return f"main{extension}"
+        return f"gallery_{index - 1:02d}{extension}"
 
     def save(self, path: Path, data: bytes) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)

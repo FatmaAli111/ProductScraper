@@ -15,12 +15,32 @@ class PaginationSettings:
 
 
 @dataclass(slots=True)
+class BrowserSettings:
+    channel: str = "chrome"
+    headless: bool = True
+    user_agent: str = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+    )
+    viewport_width: int = 1366
+    viewport_height: int = 900
+    locale: str = "ar-SA"
+    navigation_timeout: int = 60000
+    action_timeout: int = 15000
+    wait_after_load_ms: int = 4000
+    retries: int = 3
+    retry_backoff: float = 1.0
+
+
+@dataclass(slots=True)
 class ScraperSettings:
     name: str = "template"
     category_urls: list[str] = field(default_factory=list)
     pagination: PaginationSettings = field(default_factory=PaginationSettings)
     selectors: dict[str, str] = field(default_factory=dict)
     image_attribute: str = "src"
+    max_products: int = 0
+    browser: BrowserSettings = field(default_factory=BrowserSettings)
 
 
 @dataclass(slots=True)
@@ -103,6 +123,24 @@ class SettingsLoader:
             pagination=self._pagination(_section(section.get("pagination"))),
             selectors=_str_dict(section.get("selectors")),
             image_attribute=str(section.get("image_attribute", "src")),
+            max_products=int(section.get("max_products", 0)),
+            browser=self._browser(_section(section.get("browser"))),
+        )
+
+    @staticmethod
+    def _browser(data: dict[str, object]) -> BrowserSettings:
+        return BrowserSettings(
+            channel=str(data.get("channel", "chrome")),
+            headless=bool(data.get("headless", True)),
+            user_agent=str(data.get("user_agent", BrowserSettings.user_agent)),
+            viewport_width=int(data.get("viewport_width", 1366)),
+            viewport_height=int(data.get("viewport_height", 900)),
+            locale=str(data.get("locale", "ar-SA")),
+            navigation_timeout=int(data.get("navigation_timeout", 60000)),
+            action_timeout=int(data.get("action_timeout", 15000)),
+            wait_after_load_ms=int(data.get("wait_after_load_ms", 4000)),
+            retries=int(data.get("retries", 3)),
+            retry_backoff=float(data.get("retry_backoff", 1.0)),
         )
 
     @staticmethod

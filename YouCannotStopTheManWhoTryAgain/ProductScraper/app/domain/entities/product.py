@@ -28,6 +28,9 @@ class Product:
     image_urls: list[str] = field(default_factory=list)
     images: list[str] = field(default_factory=list)
     variants: list[ProductVariant] = field(default_factory=list)
+    local_folder: str = ""
+    main_image: str = ""
+    gallery_images: list[str] = field(default_factory=list)
 
     @property
     def display_price(self) -> Decimal | None:
@@ -60,6 +63,9 @@ class Product:
             "image_urls": self.image_urls,
             "images": self.images,
             "variants": [variant.as_dict() for variant in self.variants],
+            "local_folder": self.local_folder,
+            "main_image": self.main_image,
+            "gallery_images": self.gallery_images,
         }
 
     @classmethod
@@ -83,6 +89,9 @@ class Product:
             image_urls=_as_string_list(data.get("image_urls")),
             images=_as_string_list(data.get("images")),
             variants=[ProductVariant.from_dict(item) for item in _as_dict_list(data.get("variants"))],
+            local_folder=str(data.get("local_folder", "")),
+            main_image=str(data.get("main_image", "")),
+            gallery_images=_as_string_list(data.get("gallery_images")),
         )
 
 

@@ -6,41 +6,29 @@ resume: true
 
 scraper:
   # Which scraper implementation to use. Registered names live in
-  # app/infrastructure/scrapers/ (the "template" scraper is the reference).
-  name: template
+  # app/infrastructure/scrapers/.
+  name: salla
 
-  # Category pages to start from. The scraper will visit each one, follow
-  # pagination (if enabled) and collect every product link it finds.
+  # Category pages to start from. The scraper will visit each one, click the
+  # "load more" button and collect every product link it finds.
   category_urls:
-    - https://example-shop.com/category/example
+    - https://salla.sa/fahadshopksa/%D8%AD%D9%82%D8%A7%D8%A6%D8%A8-%D8%B4%D8%A7%D9%86%D9%8A%D9%84/c339003983
 
-  pagination:
-    enabled: false            # set to true if the category has multiple pages
-    next_selector: "a.next"   # CSS selector for the "next page" link
-    max_pages: 10             # safety cap on how far pagination is followed
+  # Hard cap on how many products are scraped per run (0 = unlimited).
+  max_products: 230
 
-  # CSS selectors consumed by the "template" scraper. Every field maps onto
-  # a Product attribute. Leave a key empty ("") to skip that field.
-  selectors:
-    product_link: "h2.product-title a"
-    name: "h1.product-title"
-    sku: ".product-sku"
-    description: ".product-description"
-    price: ".price-current"
-    sale_price: ".price-sale"
-    category: ".breadcrumbs li:last-child"
-    brand: ".product-brand"
-    tags: ".product-tags a"
-    colors: ".swatch.color"
-    sizes: ".swatch.size"
-    availability: ".stock-status"   # prefix with "!" to mean "absent = in stock"
-    weight: ".product-weight"
-    dimensions: ".product-dimensions"
-    images: ".gallery img"
-
-  # Attribute used to read image URLs from the <img> tags matched by "images".
-  # Use "data-src" for lazy-loaded galleries.
-  image_attribute: "src"
+  # Playwright browser settings used by client-rendered storefronts (salla).
+  browser:
+    channel: chrome              # use the installed Google Chrome
+    headless: true
+    locale: ar-SA
+    viewport_width: 1366
+    viewport_height: 900
+    navigation_timeout: 60000    # ms per page load
+    action_timeout: 15000        # ms per DOM action / wait
+    wait_after_load_ms: 4000     # settle time after domcontentloaded
+    retries: 3
+    retry_backoff: 1.0
 
 http:
   user_agent: "ProductScraper/1.0 (desktop e-commerce importer)"
@@ -59,7 +47,7 @@ download:
 
 output:
   directory: output
-  images_dir: output/images    # output/images/<Product Name>/...
+  images_dir: output/images    # output/images/<Product Name>_<SKU>/main.jpg + gallery_XX.jpg
   excel_file: output/products.xlsx
   state_file: output/state.json
   products_cache: output/products_cache.json
