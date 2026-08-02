@@ -1,0 +1,73 @@
+# ── Product Scraper configuration ─────────────────────────────────────────
+
+# Resume mode: reuses state.json + products_cache.json so an interrupted run
+# continues where it left off. Set to false to start a brand-new scrape.
+resume: true
+
+scraper:
+  # Which scraper implementation to use. Registered names live in
+  # app/infrastructure/scrapers/ (the "template" scraper is the reference).
+  name: template
+
+  # Category pages to start from. The scraper will visit each one, follow
+  # pagination (if enabled) and collect every product link it finds.
+  category_urls:
+    - https://example-shop.com/category/example
+
+  pagination:
+    enabled: false            # set to true if the category has multiple pages
+    next_selector: "a.next"   # CSS selector for the "next page" link
+    max_pages: 10             # safety cap on how far pagination is followed
+
+  # CSS selectors consumed by the "template" scraper. Every field maps onto
+  # a Product attribute. Leave a key empty ("") to skip that field.
+  selectors:
+    product_link: "h2.product-title a"
+    name: "h1.product-title"
+    sku: ".product-sku"
+    description: ".product-description"
+    price: ".price-current"
+    sale_price: ".price-sale"
+    category: ".breadcrumbs li:last-child"
+    brand: ".product-brand"
+    tags: ".product-tags a"
+    colors: ".swatch.color"
+    sizes: ".swatch.size"
+    availability: ".stock-status"   # prefix with "!" to mean "absent = in stock"
+    weight: ".product-weight"
+    dimensions: ".product-dimensions"
+    images: ".gallery img"
+
+  # Attribute used to read image URLs from the <img> tags matched by "images".
+  # Use "data-src" for lazy-loaded galleries.
+  image_attribute: "src"
+
+http:
+  user_agent: "ProductScraper/1.0 (desktop e-commerce importer)"
+  timeout: 30                  # seconds per request
+  verify_ssl: true
+  headers: {}
+  retries: 3                   # retry count for transient failures
+  retry_backoff: 1.0           # initial wait between retries (seconds)
+  max_retry_delay: 30.0        # maximum wait between retries (seconds)
+
+download:
+  threads: 8                   # concurrent image downloads (ThreadPoolExecutor)
+  timeout: 60                  # seconds per image request
+  retries: 3
+  max_images_per_product: 30   # gallery safety cap
+
+output:
+  directory: output
+  images_dir: output/images    # output/images/<Product Name>/...
+  excel_file: output/products.xlsx
+  state_file: output/state.json
+  products_cache: output/products_cache.json
+  log_file: output/scraper.log
+
+logging:
+  level: INFO                  # DEBUG | INFO | WARNING | ERROR
+  format: "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
+
+ui:
+  show_progress: true          # tqdm progress bars
